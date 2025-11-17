@@ -1,0 +1,186 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}Accueil - Forum Moderne{% endblock %}
+
+{% block content %}
+<!-- Welcome Section -->
+<div class="glass rounded-3xl shadow-xl p-8 mb-8">
+    <div class="flex items-center justify-between flex-wrap gap-4">
+        <div>
+            <h1 class="text-4xl font-bold bg-gradient-to-r from-primary-600 to-green-600 bg-clip-text text-transparent mb-2">
+                Bienvenue sur notre forum !
+            </h1>
+            <p class="text-gray-600 text-lg">Rejoignez notre communauté et participez aux discussions</p>
+        </div>
+        {% if not user.is_authenticated %}
+            <a href="{% url 'accounts:register' %}" class="bg-gradient-to-r from-primary-600 to-green-600 text-white px-6 py-3 rounded-xl font-bold hover:shadow-xl transition-all transform hover:scale-105">
+                <i class="fas fa-user-plus mr-2"></i> Rejoindre maintenant
+            </a>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Stats Cards -->
+<div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+    <div class="glass rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-gray-600 text-sm font-medium mb-1">Sujets</p>
+                <p class="text-3xl font-bold text-primary-600">{{ stats.total_topics|default:0 }}</p>
+            </div>
+            <div class="w-14 h-14 bg-gradient-to-br from-blue-400 to-cyan-500 rounded-xl flex items-center justify-center">
+                <i class="fas fa-comments text-white text-2xl"></i>
+            </div>
+        </div>
+    </div>
+
+    <div class="glass rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-gray-600 text-sm font-medium mb-1">Messages</p>
+                <p class="text-3xl font-bold text-primary-600">{{ stats.total_posts|default:0 }}</p>
+            </div>
+            <div class="w-14 h-14 bg-gradient-to-br from-green-400 to-emerald-500 rounded-xl flex items-center justify-center">
+                <i class="fas fa-comment-dots text-white text-2xl"></i>
+            </div>
+        </div>
+    </div>
+
+    <div class="glass rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-gray-600 text-sm font-medium mb-1">Membres</p>
+                <p class="text-3xl font-bold text-primary-600">{{ stats.total_users|default:0 }}</p>
+            </div>
+            <div class="w-14 h-14 bg-gradient-to-br from-purple-400 to-violet-500 rounded-xl flex items-center justify-center">
+                <i class="fas fa-users text-white text-2xl"></i>
+            </div>
+        </div>
+    </div>
+
+    <div class="glass rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-gray-600 text-sm font-medium mb-1">Nouveau membre</p>
+                {% if stats.latest_member %}
+                    <p class="text-xl font-bold text-primary-600">{{ stats.latest_member.username }}</p>
+                {% else %}
+                    <p class="text-xl font-bold text-gray-400">Aucun</p>
+                {% endif %}
+            </div>
+            <div class="w-14 h-14 bg-gradient-to-br from-pink-400 to-rose-500 rounded-xl flex items-center justify-center">
+                <i class="fas fa-user-plus text-white text-2xl"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Categories and Forums -->
+{% for category in categories %}
+<div class="glass rounded-3xl shadow-xl overflow-hidden mb-8">
+    <!-- Category Header -->
+    <div class="px-8 py-6 bg-gradient-to-r from-primary-500/10 to-green-500/10 border-b border-primary-200/50">
+        <div class="flex items-center gap-3">
+            <span class="text-3xl">{{ category.icon }}</span>
+            <div>
+                <h2 class="text-2xl font-bold text-gray-800">{{ category.name }}</h2>
+                {% if category.description %}
+                    <p class="text-gray-600 mt-1">{{ category.description }}</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Forums List -->
+    <div class="divide-y divide-gray-100">
+        {% for forum in category.forums.all %}
+        <a href="{{ forum.get_absolute_url }}" class="block px-8 py-6 hover:bg-gradient-to-r hover:from-primary-50/50 hover:to-green-50/50 transition-all">
+            <div class="flex items-start justify-between gap-4">
+                <!-- Forum Info -->
+                <div class="flex items-start gap-4 flex-1">
+                    <div class="w-12 h-12 bg-gradient-to-br from-primary-400 to-green-500 rounded-xl flex items-center justify-center flex-shrink-0 text-white text-xl">
+                        {{ forum.icon }}
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <h3 class="text-lg font-bold text-gray-800 mb-1 flex items-center gap-2">
+                            {{ forum.name }}
+                            {% if forum.is_locked %}
+                                <i class="fas fa-lock text-red-500 text-sm"></i>
+                            {% endif %}
+                        </h3>
+                        {% if forum.description %}
+                            <p class="text-gray-600 text-sm">{{ forum.description }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Forum Stats -->
+                <div class="hidden md:flex gap-8 text-center">
+                    <div>
+                        <p class="text-2xl font-bold text-primary-600">{{ forum.get_topics_count }}</p>
+                        <p class="text-xs text-gray-600">Sujets</p>
+                    </div>
+                    <div>
+                        <p class="text-2xl font-bold text-primary-600">{{ forum.get_posts_count }}</p>
+                        <p class="text-xs text-gray-600">Messages</p>
+                    </div>
+                </div>
+
+                <!-- Last Post -->
+                <div class="hidden lg:block w-64 flex-shrink-0">
+                    {% with last_post=forum.get_last_post %}
+                        {% if last_post %}
+                            <div class="bg-gray-50 rounded-xl p-3">
+                                <p class="text-xs text-gray-600 mb-1">Dernier message</p>
+                                <p class="font-medium text-sm truncate">
+                                    <a href="{{ last_post.topic.get_absolute_url }}" class="hover:text-primary-600">
+                                        {{ last_post.topic.title }}
+                                    </a>
+                                </p>
+                                <p class="text-xs text-gray-600 mt-1">
+                                    par <span class="font-medium">{{ last_post.author.username }}</span>
+                                    <br>{{ last_post.created_at|naturaltime }}
+                                </p>
+                            </div>
+                        {% else %}
+                            <p class="text-sm text-gray-400 italic">Aucun message</p>
+                        {% endif %}
+                    {% endwith %}
+                </div>
+            </div>
+        </a>
+        {% empty %}
+        <div class="px-8 py-12 text-center text-gray-500">
+            <i class="fas fa-inbox text-4xl mb-3 opacity-50"></i>
+            <p>Aucun forum dans cette catégorie pour le moment.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% empty %}
+<div class="glass rounded-3xl shadow-xl p-12 text-center">
+    <i class="fas fa-folder-open text-6xl text-gray-300 mb-4"></i>
+    <h2 class="text-2xl font-bold text-gray-600 mb-2">Aucune catégorie disponible</h2>
+    <p class="text-gray-500">Les catégories et forums seront bientôt ajoutés.</p>
+</div>
+{% endfor %}
+
+<!-- Call to Action -->
+{% if not user.is_authenticated %}
+<div class="glass rounded-3xl shadow-xl p-8 text-center mt-8">
+    <h2 class="text-3xl font-bold text-gray-800 mb-4">Prêt à rejoindre la communauté ?</h2>
+    <p class="text-gray-600 mb-6 max-w-2xl mx-auto">
+        Inscrivez-vous maintenant pour participer aux discussions, créer vos propres sujets et interagir avec d'autres membres !
+    </p>
+    <div class="flex gap-4 justify-center flex-wrap">
+        <a href="{% url 'accounts:register' %}" class="bg-gradient-to-r from-primary-600 to-green-600 text-white px-8 py-3 rounded-xl font-bold hover:shadow-xl transition-all transform hover:scale-105">
+            <i class="fas fa-user-plus mr-2"></i> S'inscrire gratuitement
+        </a>
+        <a href="{% url 'accounts:login' %}" class="border-2 border-primary-600 text-primary-600 px-8 py-3 rounded-xl font-bold hover:bg-primary-50 transition-all">
+            <i class="fas fa-sign-in-alt mr-2"></i> Se connecter
+        </a>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

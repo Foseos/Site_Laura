@@ -1,0 +1,187 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Forum Moderne{% endblock %}</title>
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Alpine.js for interactions -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#f0f9f4',
+                            100: '#d9f2e3',
+                            200: '#b5e4ca',
+                            300: '#82d0a9',
+                            400: '#4fb686',
+                            500: '#315620',
+                            600: '#27791d',
+                            700: '#206318',
+                            800: '#1c4f15',
+                            900: '#184112',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-gray-50 via-green-50/30 to-gray-100">
+    <!-- Navigation -->
+    <nav class="bg-gradient-to-r from-primary-600 to-primary-700 text-white shadow-xl sticky top-0 z-50">
+        <div class="container mx-auto px-4">
+            <div class="flex items-center justify-between py-4">
+                <!-- Logo -->
+                <a href="{% url 'forum:index' %}" class="flex items-center gap-3 hover:opacity-90 transition">
+                    <div class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
+                        <i class="fas fa-comments text-2xl"></i>
+                    </div>
+                    <span class="text-2xl font-bold">Forum Moderne</span>
+                </a>
+
+                <!-- Desktop Menu -->
+                <div class="hidden md:flex items-center gap-6">
+                    <a href="{% url 'forum:index' %}" class="hover:text-green-200 transition flex items-center gap-2">
+                        <i class="fas fa-home"></i> Accueil
+                    </a>
+                    <a href="{% url 'forum:search' %}" class="hover:text-green-200 transition flex items-center gap-2">
+                        <i class="fas fa-search"></i> Rechercher
+                    </a>
+
+                    {% if user.is_authenticated %}
+                        <a href="{% url 'accounts:profile' user.username %}" class="hover:text-green-200 transition flex items-center gap-2">
+                            <i class="fas fa-user"></i> {{ user.username }}
+                        </a>
+                        <a href="{% url 'accounts:logout' %}" class="bg-white/20 hover:bg-white/30 px-4 py-2 rounded-lg transition backdrop-blur-sm">
+                            <i class="fas fa-sign-out-alt"></i> Déconnexion
+                        </a>
+                    {% else %}
+                        <a href="{% url 'accounts:login' %}" class="hover:text-green-200 transition">Connexion</a>
+                        <a href="{% url 'accounts:register' %}" class="bg-white text-primary-600 px-4 py-2 rounded-lg hover:bg-green-50 transition font-semibold">
+                            Inscription
+                        </a>
+                    {% endif %}
+                </div>
+
+                <!-- Mobile Menu Button -->
+                <button @click="mobileMenuOpen = !mobileMenuOpen" class="md:hidden">
+                    <i class="fas fa-bars text-2xl"></i>
+                </button>
+            </div>
+
+            <!-- Mobile Menu -->
+            <div x-data="{ mobileMenuOpen: false }" x-show="mobileMenuOpen" class="md:hidden pb-4 space-y-2">
+                <a href="{% url 'forum:index' %}" class="block py-2 hover:text-green-200 transition">
+                    <i class="fas fa-home"></i> Accueil
+                </a>
+                <a href="{% url 'forum:search' %}" class="block py-2 hover:text-green-200 transition">
+                    <i class="fas fa-search"></i> Rechercher
+                </a>
+                {% if user.is_authenticated %}
+                    <a href="{% url 'accounts:profile' user.username %}" class="block py-2 hover:text-green-200 transition">
+                        <i class="fas fa-user"></i> Profil
+                    </a>
+                    <a href="{% url 'accounts:logout' %}" class="block py-2 hover:text-green-200 transition">
+                        <i class="fas fa-sign-out-alt"></i> Déconnexion
+                    </a>
+                {% else %}
+                    <a href="{% url 'accounts:login' %}" class="block py-2 hover:text-green-200 transition">Connexion</a>
+                    <a href="{% url 'accounts:register' %}" class="block py-2 hover:text-green-200 transition">Inscription</a>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    <!-- Messages -->
+    {% if messages %}
+        <div class="container mx-auto px-4 mt-6">
+            {% for message in messages %}
+                <div class="glass rounded-2xl shadow-lg p-5 mb-4 {% if message.tags == 'success' %}border-l-4 border-green-500{% elif message.tags == 'error' %}border-l-4 border-red-500{% else %}border-l-4 border-blue-500{% endif %} alert-slide">
+                    <div class="flex items-start">
+                        <div class="flex-shrink-0">
+                            <div class="w-10 h-10 rounded-full bg-gradient-to-br {% if message.tags == 'success' %}from-green-400 to-emerald-500{% elif message.tags == 'error' %}from-red-400 to-orange-500{% else %}from-blue-400 to-cyan-500{% endif %} flex items-center justify-center">
+                                <i class="fas {% if message.tags == 'success' %}fa-check-circle{% elif message.tags == 'error' %}fa-exclamation-circle{% else %}fa-info-circle{% endif %} text-white"></i>
+                            </div>
+                        </div>
+                        <div class="flex-1 ml-4">
+                            <p class="font-medium text-gray-800">{{ message }}</p>
+                        </div>
+                        <button onclick="this.parentElement.parentElement.remove()" class="text-gray-500 hover:text-gray-700 ml-4 transition-colors">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 py-8">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gradient-to-r from-gray-800 to-gray-900 text-white mt-16">
+        <div class="container mx-auto px-4 py-8">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div>
+                    <h3 class="text-xl font-bold mb-4">À propos</h3>
+                    <p class="text-gray-400">Forum Moderne - Une plateforme de discussion moderne et élégante construite avec Django.</p>
+                </div>
+                <div>
+                    <h3 class="text-xl font-bold mb-4">Liens rapides</h3>
+                    <ul class="space-y-2 text-gray-400">
+                        <li><a href="{% url 'forum:index' %}" class="hover:text-green-400 transition">Accueil</a></li>
+                        <li><a href="{% url 'forum:search' %}" class="hover:text-green-400 transition">Rechercher</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="text-xl font-bold mb-4">Contact</h3>
+                    <p class="text-gray-400">Pour toute question, contactez-nous via le forum.</p>
+                </div>
+            </div>
+            <div class="border-t border-gray-700 mt-8 pt-6 text-center text-gray-400">
+                <p>&copy; 2024 Forum Moderne. Tous droits réservés. Propulsé par Django & Tailwind CSS.</p>
+            </div>
+        </div>
+    </footer>
+
+    <style>
+        .glass {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .alert-slide {
+            animation: slideInRight 0.4s ease-out;
+        }
+
+        @keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+    </style>
+</body>
+</html>
